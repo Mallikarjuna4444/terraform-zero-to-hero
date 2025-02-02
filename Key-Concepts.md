@@ -486,7 +486,31 @@ Let's say you have an existing AWS EC2 instance that you want to start managing 
 
    After importing, Terraform updates its state file (`terraform.tfstate`) with the details of the imported resource. You might need to adjust your Terraform configuration (`main.tf`) to align with the imported resource's actual configuration.
 
-5. **Apply Changes**:
+After running the import command, Terraform will import the resource into its state file, but it won't automatically populate the configuration with the existing resource's attributes.
+
+5. **Check and Update Configuration**:
+   
+After importing, you can run the following to see what attributes are configured for the resource:
+
+terraform show
+This will show you the state of the EC2 instance after it has been imported. You should now update your Terraform configuration (main.tf) to match the existing resource attributes (e.g., instance type, ami, security groups, tags, etc.).
+
+Example updated main.tf (make sure to fill in the exact values based on your instance's details):
+
+```hcl
+Copy
+resource "aws_instance" "example" {
+  ami           = "ami-0abcdef1234567890"
+  instance_type = "t2.micro"
+  subnet_id     = "subnet-12345678"
+  key_name      = "my-key-pair"
+  tags = {
+    Name = "MyInstance"
+  }
+}
+```
+
+6. **Apply Changes**:
 
    Apply any necessary changes to your infrastructure using Terraform:
 
@@ -495,6 +519,10 @@ Let's say you have an existing AWS EC2 instance that you want to start managing 
    ```
 
    Terraform will compare the desired state in your configuration with the actual state (now managed by Terraform) and make any necessary updates to ensure they match.
+
+You can give any name to the resource name in Terraform, like example in aws_instance.example. The resource name (example in this case) is a local name used within your Terraform configuration to reference the resource.
+
+It does not have to match the name or ID of the resource in AWS. The only requirement for the import command is that the resource type and resource ID in the import statement must match the existing AWS resource.
 
 ### Tips for Using `terraform import`:
 
