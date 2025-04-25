@@ -82,3 +82,187 @@ Sure! Here's a comprehensive list of commonly used **Terraform commands**, organ
 ---
 
 Let me know if you want a cheat sheet or examples for a specific use case (like importing, state manipulation, or deploying a module).
+
+Absolutely! Here's a **more detailed breakdown** of key Terraform commands with **real-world examples**, to help you understand not just what they do, but **how and when to use them**.
+
+---
+
+## 🔧 **1. Initialization**
+### `terraform init`
+Initializes your Terraform project — it downloads the required provider plugins and sets up the backend if defined.
+
+**Example:**
+```bash
+terraform init
+```
+
+📌 Run this once at the start or any time you change providers or modules.
+
+---
+
+## 📋 **2. Formatting & Validation**
+### `terraform fmt`
+Automatically formats `.tf` files to follow the standard style.
+
+**Example:**
+```bash
+terraform fmt
+terraform fmt -recursive  # To format all subfolders
+```
+
+### `terraform validate`
+Checks whether your configuration is syntactically valid.
+
+**Example:**
+```bash
+terraform validate
+```
+
+---
+
+## 📦 **3. Variable Handling**
+### `terraform apply -var` and `-var-file`
+Pass variables via command line or file.
+
+**Example using individual variables:**
+```bash
+terraform apply -var="region=us-east-1" -var="instance_type=t2.micro"
+```
+
+**Example using variable files:**
+```bash
+terraform apply -var-file=dev.tfvars
+terraform plan -var-file=prod.tfvars
+```
+
+---
+
+## 🧪 **4. Plan & Apply**
+### `terraform plan`
+Shows what changes will be made **without applying them**.
+
+**Example:**
+```bash
+terraform plan
+terraform plan -out=tfplan.out
+```
+
+### `terraform apply`
+Applies the planned changes to create/update infrastructure.
+
+**Example:**
+```bash
+terraform apply
+terraform apply tfplan.out  # Use saved plan file
+```
+
+### `terraform apply -auto-approve`
+Skips the prompt and directly applies.
+
+```bash
+terraform apply -auto-approve
+```
+
+---
+
+## 🔁 **5. Import Existing Resources**
+### `terraform import`
+Bring existing infrastructure under Terraform management.
+
+**Example:**
+```bash
+terraform import aws_instance.my_instance i-0123456789abcdef0
+```
+
+- This command updates the **state**, not your `.tf` files.
+- Then run `terraform show` to get its attributes, and **manually add a matching block** to `main.tf`.
+
+---
+
+## 📌 **6. Inspecting State**
+### `terraform show`
+Shows the current Terraform state (human-readable format).
+
+```bash
+terraform show
+```
+
+### `terraform state list`
+Lists all resources tracked by Terraform.
+
+```bash
+terraform state list
+```
+
+### `terraform state show <resource>`
+Details a specific resource in the state.
+
+```bash
+terraform state show aws_instance.my_instance
+```
+
+---
+
+## 🧹 **7. Destroy Resources**
+### `terraform destroy`
+Tears down infrastructure managed by Terraform.
+
+**Example:**
+```bash
+terraform destroy  # Destroys everything
+terraform destroy -target=aws_instance.my_instance  # Just one resource
+terraform destroy -auto-approve  # No confirmation prompt
+```
+
+---
+
+## 🛠️ **8. State File Manipulation**
+### `terraform state rm`
+Removes a resource from the state without deleting it.
+
+**Example:**
+```bash
+terraform state rm aws_instance.my_instance
+```
+
+### `terraform state mv`
+Moves/renames a resource within state — useful when refactoring.
+
+**Example:**
+```bash
+terraform state mv aws_instance.old_name aws_instance.new_name
+```
+
+---
+
+## 🧰 **9. Providers & Modules**
+### `terraform providers`
+Lists providers used in your config.
+
+```bash
+terraform providers
+```
+
+### `terraform version`
+Shows current Terraform version.
+
+```bash
+terraform version
+```
+
+---
+
+## 🔍 **10. Debugging & Logging**
+### `TF_LOG`
+Enables detailed logs for debugging.
+
+**Example:**
+```bash
+TF_LOG=DEBUG terraform apply
+```
+
+You can also export it:
+```bash
+export TF_LOG=TRACE
+terraform plan
+```
