@@ -101,6 +101,67 @@ variable "db_password" {
 
 This will ensure that the password is not displayed in plain text during Terraform runs.
 
+Yes, you're absolutely correct!
+
+### Predefined Environment Variables (AWS credentials and region):
+- **AWS_ACCESS_KEY_ID**
+- **AWS_SECRET_ACCESS_KEY**
+- **AWS_DEFAULT_REGION**
+
+These are predefined environment variables used by AWS SDKs, and Terraform (which uses the AWS SDK) automatically picks them up for authentication and configuration purposes without needing any extra setup.
+
+### Custom Variables in Terraform:
+For custom variables that you define in your Terraform configuration, such as `region`, `instance_type`, or other user-defined variables, you need to use the `TF_VAR_` prefix in environment variables to pass their values.
+
+### Example:
+
+If you define custom variables in your Terraform configuration, such as:
+
+```hcl
+variable "region" {
+  type    = string
+  default = "us-east-1"
+}
+
+variable "instance_type" {
+  type    = string
+  default = "t2.micro"
+}
+```
+
+You can set their values using environment variables with the `TF_VAR_` prefix:
+
+```bash
+export TF_VAR_region="us-west-2"
+export TF_VAR_instance_type="t2.medium"
+```
+
+Now, when you run `terraform apply`, Terraform will automatically pick up these custom variable values (since they match the variable names) and use them in your configuration.
+
+### Key Points:
+1. **AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, etc.)** are picked up automatically by Terraform because they are part of the AWS SDK configuration, and you don’t need to use `TF_VAR_` for these specific environment variables.
+   
+2. For **custom variables** you define in your Terraform configuration, you need to use the `TF_VAR_` prefix in environment variables to pass values to them. For example:
+   - Environment variable: `TF_VAR_region="us-west-2"`
+   - Variable in Terraform: `variable "region" {}`
+
+This allows you to pass values for variables without needing to hardcode them in the `.tf` files, which is a great way to keep configurations flexible and dynamic.
+
+### Example with both:
+```bash
+export AWS_ACCESS_KEY_ID="your_access_key"
+export AWS_SECRET_ACCESS_KEY="your_secret_key"
+export AWS_DEFAULT_REGION="us-west-2"
+
+# Custom variables
+export TF_VAR_region="us-west-2"
+export TF_VAR_instance_type="t2.micro"
+```
+
+In this case:
+- Terraform will use the AWS credentials from the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables for authentication.
+- It will also use the region from `AWS_DEFAULT_REGION` and the custom variable values (`TF_VAR_region` and `TF_VAR_instance_type`) for your defined Terraform variables.
+
 ### Summary
 
 - **Local variables** can be defined using the `locals` block in a Terraform configuration file and used within that module.
