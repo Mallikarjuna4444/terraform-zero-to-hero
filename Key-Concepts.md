@@ -519,7 +519,11 @@ After running the import command, Terraform will import the resource into its st
    
 After importing, you can run the following to see what attributes are configured for the resource:
 
+```
 terraform show
+
+```
+
 This will show you the state of the EC2 instance after it has been imported. You should now update your Terraform configuration (main.tf) to match the existing resource attributes (e.g., instance type, ami, security groups, tags, etc.).
 
 Example updated main.tf (make sure to fill in the exact values based on your instance's details):
