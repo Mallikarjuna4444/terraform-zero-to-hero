@@ -229,6 +229,33 @@ The precedence of variables will be as follows:
 
 Therefore, after Terraform processes these variable files, the effective variables used in your configuration will be `region = "us-west-2"` and `instance_type = "t2.small"`.
 
+If both `dev.tfvars` and `prod.tfvars` contain the same variable, the one **listed last** on the command line will take precedence. This is because Terraform processes the `.tfvars` files in the order they are specified, and the values from the later files override those from the earlier ones.
+
+For example, if you run:
+
+```bash
+terraform apply -var-file=dev.tfvars -var-file=prod.tfvars
+```
+
+- Terraform will first apply the values from `dev.tfvars` and then apply the values from `prod.tfvars`.
+- If both files define the same variable (e.g., `region`), the value from `prod.tfvars` will override the value from `dev.tfvars` because `prod.tfvars` is listed **last**.
+
+So, if `dev.tfvars` and `prod.tfvars` both define a variable like this:
+
+- `dev.tfvars`:
+  ```hcl
+  region = "us-east-1"
+  ```
+
+- `prod.tfvars`:
+  ```hcl
+  region = "us-west-2"
+  ```
+
+Then, in this case, after Terraform processes both files, the effective value of `region` will be `"us-west-2"`, coming from `prod.tfvars`.
+
+In summary: **The file specified last on the command line will take precedence** if both `.tfvars` files define the same variable.
+
 --------------------------------------------------------------------------------------------------------------------------
 ### Workspaces:
 
