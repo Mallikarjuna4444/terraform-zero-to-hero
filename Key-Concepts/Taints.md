@@ -305,21 +305,26 @@ It’s *super powerful* if you're upgrading infrastructure versions!
 
 -----------------------------------------------------------------------------------------------------------------
 
-Yes, that’s exactly how **tainting** works in Terraform! 😄 When you taint a resource (like a storage account), Terraform will **destroy** and then **recreate** that resource, including all the nested resources within it (like containers, blobs, etc.).
+Your statement is **partially correct**, but let's be precise:
 
-### Here’s why it happens:
+- **Tainting a resource** in Terraform (with `terraform taint`) marks *only that specific resource* for destruction and recreation during the next `terraform apply`.
+- **Terraform will destroy and recreate** the **tainted resource** — for example, a storage account.
+- **Nested or child resources** (like blobs or containers inside a storage account) **are not automatically destroyed or recreated** *unless* they are also **managed by Terraform** and depend directly on the tainted resource.
 
-When you use the `terraform taint` command on a **resource** like `azurerm_storage_account`, Terraform marks the **entire resource** as needing to be destroyed and recreated. This includes **all dependent resources** inside that resource, such as:
+In short:
+- If the containers and blobs **are managed in your Terraform code** and **depend on** the storage account, then tainting the storage account may trigger recreation of those too.
+- If the containers and blobs **exist outside of Terraform management** (e.g., created manually or managed elsewhere), Terraform **won't touch them** unless explicitly defined.
 
-- Containers
-- Blob Storage
-- Files
-- Any settings tied to that storage account
+Also, note that in the case of some cloud services like Azure Storage Accounts:
+- Destroying a storage account *does* delete all its contents (blobs, containers, etc.), **even if they were manually created**.
+- So **at the platform level**, deleting the storage account **physically deletes nested objects** — but **Terraform itself** only manages what you declare.
 
-As a result:
-- **The storage account itself** is destroyed.
-- **All resources within it**, such as containers or blobs, are also destroyed as part of the storage account destruction.
-- Terraform then **recreates** the storage account and all its nested resources from scratch, as per your Terraform configuration.
+---
+
+**Summary:**
+- Terraform will destroy and recreate the tainted resource.
+- If nested resources are declared in Terraform and depend on it, they will be recreated too.
+- Physically, deleting some resources (like a storage account) will inherently destroy nested data, even if Terraform doesn’t know about it.
 
 ### How to Prevent Nested Resources from Being Destroyed:
 
