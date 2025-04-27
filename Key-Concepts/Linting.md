@@ -228,7 +228,8 @@ Once you add this YAML to your Azure DevOps repository (under `.azure-pipelines.
 
 This example integrates the linting tools into a CI/CD pipeline to ensure that Terraform code is validated and follows best practices before being applied to any infrastructure.
 
-Good question!  
+**Difference between TFlint and Checkov:**
+
 **TFLint** and **Checkov** are both tools for checking your **Infrastructure as Code (IaC)**, but they focus on **different things**:
 
 ---
