@@ -228,3 +228,31 @@ Once you add this YAML to your Azure DevOps repository (under `.azure-pipelines.
 
 This example integrates the linting tools into a CI/CD pipeline to ensure that Terraform code is validated and follows best practices before being applied to any infrastructure.
 
+Good question!  
+**TFLint** and **Checkov** are both tools for checking your **Infrastructure as Code (IaC)**, but they focus on **different things**:
+
+---
+
+| Feature           | **TFLint** | **Checkov** |
+|:------------------|:-----------|:------------|
+| **Primary Focus** | Syntax checking, linting, and best practices for **Terraform** code. | Security and compliance scanning across **Terraform, CloudFormation, Kubernetes, ARM, Docker**, etc. |
+| **Scope** | Mostly **Terraform-specific** — checks for mistakes, unused variables, wrong resource types, etc. | **Security-focused** — checks for misconfigurations, policy violations, and risky practices across many IaC frameworks. |
+| **Examples** | Warns if you declare a variable but never use it, or if you use a deprecated AWS resource. | Warns if an S3 bucket is public, a database isn’t encrypted, or a Kubernetes deployment runs as root. |
+| **Plugins/Rules** | You can install custom **rulesets** for different providers (like AWS, Azure, GCP). | You can write **custom policies** with YAML or Python. |
+| **Installation** | Lightweight, fast setup. | Slightly heavier (bigger set of rules and scans). |
+| **Typical Use** | Code quality and Terraform best practices. | Cloud security and compliance scanning. |
+
+---
+
+### 🧠 Super simple summary:
+
+- **TFLint** = "Is my Terraform **clean and correct**?"
+- **Checkov** = "Is my infrastructure **safe and secure**?"
+
+---
+
+### ⚡ Bonus Tip:
+You can actually **use both** together in a CI/CD pipeline:  
+First **TFLint** to catch bugs early ➔ then **Checkov** to check for security issues before deployment.
+
+---
