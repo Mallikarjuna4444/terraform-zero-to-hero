@@ -24,6 +24,30 @@ Terraform initializes the working directory containing your configuration files.
 
 > 🔒 This folder is internal to Terraform. You typically **shouldn't manually modify** its contents.
 
+Terraform creates the **state file (`terraform.tfstate`)** when you first run:
+
+```bash
+terraform apply
+```
+
+### Breakdown of When the State File is Created:
+
+| Stage               | Action                                               | State File?                 |
+| ------------------- | ---------------------------------------------------- | --------------------------- |
+| `terraform init`    | Initializes backend, downloads providers/modules     | ❌ No                        |
+| `terraform plan`    | Creates an execution plan (dry run)                  | ❌ No                        |
+| `terraform apply`   | Provisions infrastructure based on plan              | ✅ Yes                       |
+| `terraform import`  | Imports existing infrastructure into Terraform       | ✅ Yes (or updates existing) |
+| `terraform refresh` | Updates state file with real-world resource statuses | ✅ Yes (if already exists)   |
+
+### Notes:
+
+* The state file stores a **mapping between Terraform configuration and real-world infrastructure**.
+* The default location is `terraform.tfstate` (unless remote backends like S3 or Azure Blob are configured).
+* If using a remote backend, the file may not appear locally—it's stored remotely.
+
+Would you like to see how to configure a remote backend to store the state securely (e.g., in Azure Blob Storage)?
+
 
 
 ### 🔧 **Setup & Initialization**
