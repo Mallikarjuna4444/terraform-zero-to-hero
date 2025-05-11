@@ -596,6 +596,105 @@ source = "git::https://<pat>@dev.azure.com/org/project/_git/repo//path?ref=main"
 
 ---
 
+When your **Terraform module is in a *different Azure DevOps project*** (but within the same organization), you can still use it by referencing the correct Git URL and setting up **secure authentication** — typically with a **Personal Access Token (PAT)**.
+
+Here’s how to securely authenticate and use a Terraform module from a **different Azure DevOps project**:
+
+---
+
+### ✅ 1. **Reference the Module via Git URL**
+
+```hcl
+module "example_module" {
+  source = "git::https://dev.azure.com/<organization>/<other-project>/_git/<repo-name>//<path-to-module>?ref=<branch-or-tag>"
+
+  # example inputs
+  resource_group_name = "example-rg"
+  location            = "East US"
+}
+```
+
+> 🔹 Be sure to replace:
+>
+> * `<organization>`: Your ADO org name
+> * `<other-project>`: The ADO project *where the module is hosted*
+> * `<repo-name>`: The module's Git repo name
+> * `<path-to-module>`: The subfolder inside the repo (e.g., `modules/vnet`)
+> * `<branch-or-tag>`: Recommended to pin to `main` or a version tag like `v1.0.0`
+
+---
+
+### 🔐 2. **Authenticate Using a Personal Access Token (PAT)**
+
+Azure DevOps **requires authentication** for private repos. Here's how to handle it securely:
+
+---
+
+#### 🎯 Option A: **Use Environment Variables in Terraform Workflow**
+
+In your Azure DevOps pipeline or local shell:
+
+```bash
+export GIT_TERMINAL_PROMPT=0
+export GIT_ASKPASS=echo
+export GIT_USERNAME=unused
+export GIT_PASSWORD=<your_PAT>
+```
+
+Terraform will use these when accessing the Git URL.
+
+---
+
+#### 🎯 Option B: **Use PAT with Token Replacement in CI/CD Pipeline**
+
+In your **Azure DevOps Pipeline YAML**, you can do:
+
+```yaml
+variables:
+  PAT: $(System.AccessToken)  # or store a custom PAT in pipeline secrets
+
+steps:
+  - task: Bash@3
+    name: terraformInit
+    inputs:
+      targetType: 'inline'
+      script: |
+        export GIT_TERMINAL_PROMPT=0
+        export GIT_ASKPASS=echo
+        export GIT_USERNAME=unused
+        export GIT_PASSWORD=$(PAT)
+
+        terraform init
+```
+
+You can also embed the PAT in the `source` URL (less secure, not recommended):
+
+```hcl
+source = "git::https://<pat>@dev.azure.com/org/project/_git/repo//modules/vm?ref=main"
+```
+
+But you should use this **only in local testing** or behind strong secrets management.
+
+---
+
+### 🔐 PAT Permissions Needed:
+
+Ensure the PAT (or `System.AccessToken`) has:
+
+* **Code > Read & execute** permission on the *project hosting the module repo*.
+
+---
+
+### ✅ Best Practices
+
+* Use **tags** or commit hashes (`ref=v1.0.0`) for version locking.
+* **Never commit PATs** to your repo.
+* Prefer using **Azure DevOps secrets** or **variable groups** to store PATs securely.
+
+---
+
+Would you like a complete example of an Azure DevOps pipeline that calls a module from another project using a PAT?
+
 
 
 
