@@ -513,6 +513,89 @@ This will:
 * Create a VM inside a subnet in a VNet, within a specified RG
 
 ---
+Excellent question — when your **Terraform module is in a different Azure DevOps (ADO) Git repository**, you can **reference it via a Git source URL** in your `module` block using the `source` argument.
 
-Would you like me to zip this up or generate a GitHub repo layout you can clone?
+---
+
+### ✅ Step-by-Step: Call a Module from Another Azure DevOps Repo
+
+#### 🧩 1. **Use `source` with Git URL**
+
+You can reference your module like this:
+
+```hcl
+module "network" {
+  source = "git::https://<organization>@dev.azure.com/<organization>/<project>/_git/<repo-name>//<module-path>?ref=<branch-or-tag>"
+
+  # example input variables
+  location            = "East US"
+  resource_group_name = "shared-rg"
+  vnet_name           = "shared-vnet"
+}
+```
+
+---
+
+### 🔍 Example
+
+If your module is located in:
+
+* **ADO Project**: `MyProject`
+* **Repo Name**: `tf-modules`
+* **Path inside repo**: `modules/network`
+* **Branch**: `main`
+
+You would write:
+
+```hcl
+module "network" {
+  source = "git::https://dev.azure.com/myorg/MyProject/_git/tf-modules//modules/network?ref=main"
+
+  location            = "East US"
+  resource_group_name = "shared-rg"
+  vnet_name           = "shared-vnet"
+}
+```
+
+> 🧠 `//modules/network` refers to the subdirectory inside the Git repo.
+> `?ref=main` pins the module to the `main` branch (you can use a tag, commit hash, etc.).
+
+---
+
+### 🔒 2. **Authentication**
+
+Since Azure DevOps private repos require authentication, you'll need a **Personal Access Token (PAT)**.
+
+You can authenticate in one of these ways:
+
+#### a. **Set Git credentials via environment variable:**
+
+```bash
+export GIT_ASKPASS=echo
+export GIT_USERNAME=anyvalue
+export GIT_PASSWORD=<your-pat>
+```
+
+Or use a Git credential manager, or:
+
+#### b. **Embed PAT (not recommended for production)**
+
+```hcl
+source = "git::https://<pat>@dev.azure.com/org/project/_git/repo//path?ref=main"
+```
+
+⚠️ Avoid hardcoding your PAT — use a secure method like Azure Key Vault or CI pipeline secrets.
+
+---
+
+### ✅ Best Practices
+
+* Use a **tag or commit hash** for versioning (`ref=v1.0.0`).
+* Store sensitive info (PATs) in **secure pipeline variables**.
+* Keep module paths consistent across repos.
+
+---
+
+
+
 
