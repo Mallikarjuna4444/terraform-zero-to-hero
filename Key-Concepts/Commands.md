@@ -1,6 +1,30 @@
 Sure! Here's a comprehensive list of commonly used **Terraform commands**, organized by category, with brief explanations. These cover everything from initialization to managing infrastructure:
 
 ---
+Yes, `terraform init` **does create a `.terraform` folder** in your working directory.
+
+### Here's what happens:
+
+When you run:
+
+```bash
+terraform init
+```
+
+Terraform initializes the working directory containing your configuration files. As part of this process, it creates a `.terraform/` directory which typically includes:
+
+### Contents of `.terraform/` folder:
+
+| File/Folder                | Description                                                            |
+| -------------------------- | ---------------------------------------------------------------------- |
+| `.terraform/providers/`    | Contains downloaded provider plugins (e.g., Azure, AWS).               |
+| `.terraform.lock.hcl`      | The dependency lock file, specifying exact versions of providers used. |
+| `.terraform/modules/`      | Stores downloaded modules (if used).                                   |
+| `.terraform/` (root files) | Metadata used to track the state backend, modules, and providers.      |
+
+> 🔒 This folder is internal to Terraform. You typically **shouldn't manually modify** its contents.
+
+
 
 ### 🔧 **Setup & Initialization**
 
