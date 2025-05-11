@@ -98,6 +98,47 @@ resource "aws_security_group" "example" {
 - With `ignore_changes = ["ingress"]`, any changes to the `ingress` rules (e.g., manually changing security group rules) will not trigger a `terraform apply` action to update the security group. This means if someone modifies the ingress rules outside of Terraform, those changes won’t be overwritten during the next Terraform run.
 - You can also use `ignore_changes` for other attributes like `tags`, `ami`, or `subnet_id`, depending on what you want Terraform to ignore.
 
+Exactly — `ignore_changes` is a lifecycle argument in Terraform that tells Terraform to **ignore updates to specified attributes** even if they’ve changed outside of Terraform.
+
+### ✅ When to Use `ignore_changes`
+
+Use it when:
+
+* A resource is **modified externally** (e.g., manually in Azure/AWS portal).
+* Terraform detects a drift and tries to **revert** those changes — but you **don’t want** it to.
+* You're using **dynamic values** like timestamps or managed keys that change outside your control.
+
+---
+
+### 🔧 Example: Ignore Tag Changes on an Azure VM
+
+```hcl
+resource "azurerm_virtual_machine" "example" {
+  name                  = "example-vm"
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  network_interface_ids = [azurerm_network_interface.example.id]
+  vm_size               = "Standard_DS1_v2"
+
+  # ... other config ...
+
+  lifecycle {
+    ignore_changes = [
+      tags,
+    ]
+  }
+}
+```
+
+In this case, if someone updates tags in the Azure Portal, Terraform will **not overwrite** them on the next `terraform apply`.
+
+---
+
+### 📝 Tips:
+
+* `ignore_changes` is helpful but can **mask real drift**, so use it carefully.
+* You can ignore nested attributes too, like `settings[0].parameter`.
+
 ---
 
 ### **Combining Multiple Lifecycle Arguments**
