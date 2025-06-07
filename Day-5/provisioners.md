@@ -9,6 +9,7 @@ Running initialization commands
 ⚠️ Important: Use provisioners only as a last resort — when you can't accomplish something using native Terraform providers or resources. They're considered not ideal for idempotency and can introduce complexity.
 
 ✅ Common Types of Provisioners
+
 remote-exec – Runs commands on the remote machine.
 
 file – Uploads files to the remote machine.
