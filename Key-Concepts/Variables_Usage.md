@@ -108,6 +108,12 @@ Yes, you're absolutely correct!
 - **AWS_SECRET_ACCESS_KEY**
 - **AWS_DEFAULT_REGION**
 
+**export ARM_CLIENT_ID="appId"              
+export ARM_CLIENT_SECRET="password"          
+export ARM_SUBSCRIPTION_ID="<your-subscription-id>"
+export ARM_TENANT_ID="tenant"**
+
+
 These are predefined environment variables used by AWS SDKs, and Terraform (which uses the AWS SDK) automatically picks them up for authentication and configuration purposes without needing any extra setup.
 
 ### Custom Variables in Terraform:
@@ -152,6 +158,12 @@ This allows you to pass values for variables without needing to hardcode them in
 export AWS_ACCESS_KEY_ID="your_access_key"
 export AWS_SECRET_ACCESS_KEY="your_secret_key"
 export AWS_DEFAULT_REGION="us-west-2"
+
+export ARM_CLIENT_ID="appId"                 # SP application ID
+export ARM_CLIENT_SECRET="password"          # SP password
+export ARM_SUBSCRIPTION_ID="<your-subscription-id>"
+export ARM_TENANT_ID="tenant"
+
 
 # Custom variables
 export TF_VAR_region="us-west-2"
