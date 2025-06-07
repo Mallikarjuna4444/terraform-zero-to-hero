@@ -10,11 +10,11 @@ Running initialization commands
 
 ✅ Common Types of Provisioners
 
-remote-exec – Runs commands on the remote machine.
+**remote-exec** – Runs commands on the remote machine.
 
-file – Uploads files to the remote machine.
+**file** – Uploads files to the remote machine.
 
-local-exec – Runs commands on the local machine where Terraform is executed.
+**local-exec** – Runs commands on the local machine where Terraform is executed.
 
 
 Certainly, let's delve deeper into the `file`, `remote-exec`, and `local-exec` provisioners in Terraform, along with examples for each.
