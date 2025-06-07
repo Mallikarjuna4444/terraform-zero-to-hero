@@ -18,95 +18,81 @@ Terraform is an Infrastructure as Code (IaC) tool used to define and provision i
 
 2. **Versioning Complexity**: Managing state files in VCS can lead to complex versioning issues, especially when multiple team members are working on the same infrastructure.
 
-**Overcoming Disadvantages with Remote Backends (e.g., S3):**
+To store the **Terraform state file in Azure**, you use **Azure Blob Storage** as a **remote backend**. This allows teams to collaborate and ensures state consistency.
 
-A remote backend stores the Terraform state file outside of your local file system and version control. Using S3 as a remote backend is a popular choice due to its reliability and scalability. Here's how to set it up:
+---
 
-1. **Create an S3 Bucket**: Create an S3 bucket in your AWS account to store the Terraform state. Ensure that the appropriate IAM permissions are set up.
+## ✅ Prerequisites
 
-2. **Configure Remote Backend in Terraform:**
+1. An Azure storage account
+2. A container inside the storage account (e.g., `tfstate`)
+3. A shared access or service principal authentication setup
 
-   ```hcl
-   # In your Terraform configuration file (e.g., main.tf), define the remote backend.
-   terraform {
-     backend "s3" {
-       bucket         = "your-terraform-state-bucket"
-       key            = "path/to/your/terraform.tfstate"
-       region         = "us-east-1" # Change to your desired region
-       encrypt        = true
-       dynamodb_table = "your-dynamodb-table"
-     }
-   }
-   ```
+---
 
-   Replace `"your-terraform-state-bucket"` and `"path/to/your/terraform.tfstate"` with your S3 bucket and desired state file path.
+## 📂 Step-by-Step Example: Remote State in Azure
 
-3. **DynamoDB Table for State Locking:**
+### 🔹 1. **Create Storage in Azure (one-time setup)**
 
-   To enable state locking, create a DynamoDB table and provide its name in the `dynamodb_table` field. This prevents concurrent access issues when multiple users or processes run Terraform.
+You can use the Azure CLI:
 
-**State Locking with DynamoDB:**
+```bash
+# Variables
+RESOURCE_GROUP="terraform-rg"
+STORAGE_ACCOUNT="tfstate12345"
+CONTAINER_NAME="tfstate"
 
-DynamoDB is used for state locking when a remote backend is configured. It ensures that only one user or process can modify the Terraform state at a time. Here's how to create a DynamoDB table and configure it for state locking:
+# Create resource group
+az group create --name $RESOURCE_GROUP --location eastus
 
-1. **Create a DynamoDB Table:**
+# Create storage account (must be globally unique)
+az storage account create --name $STORAGE_ACCOUNT --resource-group $RESOURCE_GROUP --location eastus --sku Standard_LRS
 
-   You can create a DynamoDB table using the AWS Management Console or AWS CLI. Here's an AWS CLI example:
+# Get storage account key
+ACCOUNT_KEY=$(az storage account keys list --resource-group $RESOURCE_GROUP --account-name $STORAGE_ACCOUNT --query '[0].value' --output tsv)
 
-   ```sh
-   aws dynamodb create-table --table-name your-dynamodb-table --attribute-definitions AttributeName=LockID,AttributeType=S --key-schema AttributeName=LockID,KeyType=HASH --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
-   ```
-
-2. **Configure the DynamoDB Table in Terraform Backend Configuration:**
-
-   In your Terraform configuration, as shown above, provide the DynamoDB table name in the `dynamodb_table` field under the backend configuration.
-
-By following these steps, you can securely store your Terraform state in S3 with state locking using DynamoDB, mitigating the disadvantages of storing sensitive information in version control systems and ensuring safe concurrent access to your infrastructure. For a complete example in Markdown format, you can refer to the provided example below:
-
-```markdown
-# Terraform Remote Backend Configuration with S3 and DynamoDB
-
-## Create an S3 Bucket for Terraform State
-
-1. Log in to your AWS account.
-
-2. Go to the AWS S3 service.
-
-3. Click the "Create bucket" button.
-
-4. Choose a unique name for your bucket (e.g., `your-terraform-state-bucket`).
-
-5. Follow the prompts to configure your bucket. Ensure that the appropriate permissions are set.
-
-## Configure Terraform Remote Backend
-
-1. In your Terraform configuration file (e.g., `main.tf`), define the remote backend:
-
-   ```hcl
-   terraform {
-     backend "s3" {
-       bucket         = "your-terraform-state-bucket"
-       key            = "path/to/your/terraform.tfstate"
-       region         = "us-east-1" # Change to your desired region
-       encrypt        = true
-       dynamodb_table = "your-dynamodb-table"
-     }
-   }
-   ```
-
-   Replace `"your-terraform-state-bucket"` and `"path/to/your/terraform.tfstate"` with your S3 bucket and desired state file path.
-
-2. Create a DynamoDB Table for State Locking:
-
-   ```sh
-   aws dynamodb create-table --table-name your-dynamodb-table --attribute-definitions AttributeName=LockID,AttributeType=S --key-schema AttributeName=LockID,KeyType=HASH --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
-   ```
-
-   Replace `"your-dynamodb-table"` with the desired DynamoDB table name.
-
-3. Configure the DynamoDB table name in your Terraform backend configuration, as shown in step 1.
-
-By following these steps, you can securely store your Terraform state in S3 with state locking using DynamoDB, mitigating the disadvantages of storing sensitive information in version control systems and ensuring safe concurrent access to your infrastructure.
+# Create blob container
+az storage container create --name $CONTAINER_NAME --account-name $STORAGE_ACCOUNT --account-key $ACCOUNT_KEY
 ```
 
-Please note that you should adapt the configuration and commands to your specific AWS environment and requirements.
+---
+
+### 🔹 2. **Configure `backend` in Terraform**
+
+In your Terraform configuration, add this to **`main.tf`** or `backend.tf`:
+
+```hcl
+terraform {
+  backend "azurerm" {
+    resource_group_name   = "terraform-rg"
+    storage_account_name  = "tfstate12345"
+    container_name        = "tfstate"
+    key                   = "terraform.tfstate"
+  }
+}
+```
+
+> 🔒 `key` defines the blob file name within the container.
+
+---
+
+### 🔹 3. **Initialize the Backend**
+
+Run:
+
+```bash
+terraform init
+```
+
+Terraform will prompt you to migrate your local state (if one exists) to the remote backend.
+
+---
+
+## 📌 Notes
+
+* **Do not commit your `.terraform` directory or `.tfstate` file** if using a remote backend.
+* Ensure proper RBAC for whoever needs to access or modify state.
+* Consider enabling **state locking** via Azure Blob leases (automatically handled by Terraform in Azure).
+
+---
+
