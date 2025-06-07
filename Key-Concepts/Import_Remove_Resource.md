@@ -290,5 +290,108 @@ Would you like a short script or alias that makes it easy to back up or restore 
 * Especially useful in **collaborative** or **production** environments.
 
 ---
+Excellent scenario — and exactly why **Azure Blob Versioning + Terraform** is a powerful combination for disaster recovery.
+
+Let’s walk through how to **restore your Terraform remote state** from a previous backup version in Azure Blob Storage, **after something like a `terraform destroy` accidentally wiped production resources**.
+
+---
+
+## 🧨 Scenario
+
+* Your production environment is managed by Terraform.
+* You’re using **remote state** stored in **Azure Blob Storage**.
+* Someone ran `terraform destroy` or `terraform apply` with incorrect changes.
+* The state file (`terraform.tfstate`) now reflects the destroyed/incorrect state.
+* You need to **roll back to a previous version of the state**.
+
+---
+
+## ✅ Step-by-Step: Restore Terraform State from Azure Blob Versioning
+
+### 🔹 Step 1: List Available Versions
+
+```bash
+az storage blob list \
+  --account-name <your_storage_account> \
+  --container-name <your_container> \
+  --name terraform.tfstate \
+  --include versions \
+  --output table
+```
+
+You’ll see something like this:
+
+| Name              | VersionId                             | Is Current Version |
+| ----------------- | ------------------------------------- | ------------------ |
+| terraform.tfstate | 2025-06-07T10:00:00.0000000Z          | true               |
+| terraform.tfstate | 2025-06-06T16:45:30.0000000Z (backup) | false              |
+
+### 🔹 Step 2: Copy the Desired Backup Version Over the Current Blob
+
+```bash
+az storage blob copy start \
+  --account-name <your_storage_account> \
+  --destination-blob terraform.tfstate \
+  --destination-container <your_container> \
+  --source-uri "https://<your_storage_account>.blob.core.windows.net/<your_container>/terraform.tfstate?versionid=<version_id>"
+```
+
+🔁 Replace `<version_id>` with the one you want to restore (from step 1).
+
+✅ This will **overwrite the current `terraform.tfstate`** with the previous good version.
+
+---
+
+## 🧪 Step 3: Verify the State
+
+After restoring:
+
+1. Run:
+
+   ```bash
+   terraform refresh
+   ```
+
+   This updates the local Terraform state cache and compares it with real infrastructure.
+
+2. Optionally run:
+
+   ```bash
+   terraform plan
+   ```
+
+   To ensure Terraform now sees the correct (restored) state.
+
+---
+
+## 🚨 What This Actually Does
+
+* You’re **not re-creating resources** — you're simply telling Terraform: “This was the last known good state.”
+* If the infrastructure still exists (wasn't fully destroyed), Terraform will **reconnect** to it.
+* If the infrastructure was truly deleted, you’ll have to re-`apply` based on that restored state.
+
+---
+
+## 🛠️ Example Full Command
+
+```bash
+az storage blob copy start \
+  --account-name tfstate12345 \
+  --destination-blob terraform.tfstate \
+  --destination-container tfstate \
+  --source-uri "https://tfstate12345.blob.core.windows.net/tfstate/terraform.tfstate?versionid=2025-06-06T16:45:30.0000000Z"
+```
+
+---
+
+## 🧷 Tip: Add Versioning and Logging in Production
+
+* Enable **soft delete** for blobs in Azure for extra protection.
+* Store `terraform.tfstate` versions in a **read-only log container** as audit trail.
+* Automate daily snapshots via script or Azure Function.
+
+---
+
+Let me know if you’d like a script to **automate finding the latest valid backup version and restoring it**, or if you want to test this in a non-production environment first.
 
 
