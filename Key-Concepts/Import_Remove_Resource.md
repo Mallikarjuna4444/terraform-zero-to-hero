@@ -2,7 +2,7 @@ Got it — you want to **import** an existing Azure Storage Account into Terrafo
 
 ---
 
-### 1. Make sure your Terraform code defines the storage account
+### 1. Make sure your Terraform code defines the storage account (Idhi correct process)
 Before importing, Terraform needs a matching resource block. Example:
 
 ```hcl
