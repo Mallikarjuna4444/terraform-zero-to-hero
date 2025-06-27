@@ -594,30 +594,114 @@ In Terraform, data sources allow you to fetch and use information from external 
 
 Here’s a basic example of how you might use a data source in a Terraform configuration:
 
+Sure! Here's a **similar example for Azure** using Terraform, where a **data source** is used to look up the latest **Azure VM image** and then launch a **virtual machine** using that image.
+
+---
+
+## 💠 Terraform Example: Azure Image Data Source + VM Resource
+
 ```hcl
-data "aws_ami" "example" {
-  most_recent = true
-  owners      = ["self"]
+provider "azurerm" {
+  features {}
+}
+
+# ✅ Data Source: Get the latest Ubuntu image from Canonical
+data "azurerm_shared_image" "ubuntu_image" {
+  name                = "ubuntu-2204"
+  gallery_name        = "my-image-gallery"
+  resource_group_name = "my-image-rg"
+}
+
+# 🔧 Resource: Create a Virtual Machine using the image from data source
+resource "azurerm_linux_virtual_machine" "example" {
+  name                = "example-vm"
+  resource_group_name = "my-resource-group"
+  location            = "East US"
+  size                = "Standard_B1s"
+  admin_username      = "azureuser"
+  network_interface_ids = [
+    azurerm_network_interface.example.id,
+  ]
+
+  source_image_id = data.azurerm_shared_image.ubuntu_image.id
+
+  admin_ssh_key {
+    username   = "azureuser"
+    public_key = file("~/.ssh/id_rsa.pub")
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
   tags = {
-    Name = "my-ami"
+    environment = "example"
   }
 }
 
-resource "aws_instance" "example" {
-  ami           = data.aws_ami.example.id
-  instance_type = "t2.micro"
+# Supporting Resources (simplified)
+resource "azurerm_virtual_network" "example" {
+  name                = "example-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = "East US"
+  resource_group_name = "my-resource-group"
+}
 
-  tags = {
-    Name = "example-instance"
+resource "azurerm_subnet" "example" {
+  name                 = "example-subnet"
+  resource_group_name  = "my-resource-group"
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_network_interface" "example" {
+  name                = "example-nic"
+  location            = "East US"
+  resource_group_name = "my-resource-group"
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.example.id
+    private_ip_address_allocation = "Dynamic"
   }
 }
 ```
 
-In this example:
+---
 
-- **Data Source (`data.aws_ami.example`)**: Fetches the most recent Amazon Machine Image (AMI) with specific tags and owned by "self".
-- **Resource (`aws_instance.example`)**: Uses the fetched AMI ID (`data.aws_ami.example.id`) to launch an EC2 instance.
+### 📝 Explanation
 
+* **`data.azurerm_shared_image`**: Looks up a specific image from an Azure Shared Image Gallery.
+* **`source_image_id`**: Used in the VM resource to reference the image ID retrieved from the data source.
+* This achieves the same result as your AWS example: dynamically fetching image details and using them in resource creation.
+
+---
+
+### ✅ Alternative: Use Marketplace Image
+
+If you're using an image from the **Azure Marketplace**:
+
+```hcl
+data "azurerm_image" "ubuntu" {
+  name                = "UbuntuServer"
+  resource_group_name = "my-image-rg"
+}
+```
+
+Or better yet, use `azurerm_linux_virtual_machine` with `source_image_reference`:
+
+```hcl
+resource "azurerm_linux_virtual_machine" "example" {
+  # ...
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
+    version   = "latest"
+  }
+}
+```
 ### Key Points:
 
 - **Dynamic Configuration**: Data sources allow you to dynamically fetch and use information, such as AMIs, VPC IDs, subnet details, etc., that might change over time.
