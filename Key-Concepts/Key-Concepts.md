@@ -124,8 +124,9 @@ In Terraform, both `terraform.tfvars` and `dev.tfvars` are conventions for organ
 
 ### Commandline vars:
 
+```hcl
 terraform apply -var="instance_type=t2.micro" -var="region=us-west-2"
-
+```
 
 ### Example:
 
