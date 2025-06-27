@@ -121,6 +121,12 @@ In Terraform, both `terraform.tfvars` and `dev.tfvars` are conventions for organ
   3. terraform.tfvars: Loaded if it exists.
   4. *.auto.tfvars and *.tfvars: Loaded in alphabetical order, with *.auto.tfvars processed before *.tfvars.
 
+
+### Commandline vars:
+
+terraform apply -var="instance_type=t2.micro" -var="region=us-west-2"
+
+
 ### Example:
 
 Assume you have `terraform.tfvars` with common variables like AWS region and instance type:
