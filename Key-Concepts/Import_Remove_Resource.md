@@ -41,7 +41,7 @@ terraform import azurerm_storage_account.example /subscriptions/12345678-1234-56
 
 ---
 
-**Quick tip:**  
+**Important Note:**  
 If your `.tf` config doesn't match exactly, Terraform will want to recreate things. So after import, tweak your `.tf` files until `terraform plan` shows **no changes**.
 
 ---
